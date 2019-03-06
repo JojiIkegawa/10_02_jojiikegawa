@@ -1,0 +1,37 @@
+<?php
+include('functions.php');
+
+if (
+    !isset($_POST['task']) || $_POST['task']=='' ||
+    !isset($_POST['deadline']) || $_POST['deadline']==''
+) {
+    exit('ParamError');
+}
+
+$task = $_POST['task'];
+$deadline = $_POST['deadline'];
+$comment = $_POST['comment'];
+
+$pdo = db_conn();
+
+$sql ='INSERT INTO php02_table(id, task, deadline, comment, indate) VALUES(NULL, :a1, :a2, :a3, sysdate())';
+
+$stmt = $pdo->prepare($sql);
+$stmt->bindValue(':a1', $task, PDO::PARAM_STR);    //Integer（数値の場合 PDO::PARAM_INT)
+$stmt->bindValue(':a2', $deadline, PDO::PARAM_STR);   //Integer（数値の場合 PDO::PARAM_INT)
+$stmt->bindValue(':a3', $comment, PDO::PARAM_STR);  //Integer（数値の場合 PDO::PARAM_INT)
+$status = $stmt->execute();
+
+$sql = 'SELECT * FROM php02_table ORDER BY deadline DESC';
+$stmt = $pdo->prepare($sql);
+$status = $stmt->execute();
+
+if ($status==false) {
+    errorMsg($stmt);
+} else {
+    $res= [];
+    while ($result = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    $res[] = $result;
+    }
+    echo json_encode($res);
+}
